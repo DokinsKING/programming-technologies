@@ -47,11 +47,9 @@ class MilvusClient:
         except Exception as e:
             raise RuntimeError(f"Не удалось загрузить коллекцию '{collection_name}': {e}")
         
-        # Получаем метрику из индекса коллекции
         indexes = collection.indexes
-        metric_type = "COSINE"  # По умолчанию
+        metric_type = "COSINE"
         if indexes:
-            # Берем метрику из первого индекса поля embedding
             for index in indexes:
                 if index.field_name == "embedding":
                     metric_type = index.params.get("metric_type", "COSINE")
@@ -59,7 +57,7 @@ class MilvusClient:
         
         search_params = {
             "metric_type": metric_type,
-            "params": {"nprobe": 10}  # Количество кластеров для поиска
+            "params": {"nprobe": 10}  
         }
         
         results = collection.search(
@@ -68,22 +66,20 @@ class MilvusClient:
             param=search_params,
             limit=top_k,
             expr=expr,
-            output_fields=["text", "file_name", "file_path", "chunk_index"]  # Возвращаем текст и метаданные
+            output_fields=["text", "file_name", "file_path", "chunk_index"]  
         )
         
-        # Форматируем результаты
         formatted_results = []
         for result in results:
             hits = []
-            for hit in result:  # Заменили на правильный формат
-                # Теперь result - это список, и каждый hit является словарем
+            for hit in result:
                 hits.append({
-                    "id": hit.get('id', 'N/A'),  # Получаем ID
-                    "distance": hit.get('distance', 0),  # Получаем расстояние
-                    "text": hit.get('text', "Нет текста"),  # Получаем текст
-                    "file_name": hit.get('file_name', 'N/A'),  # Имя файла
-                    "file_path": hit.get('file_path', 'N/A'),  # Путь к файлу
-                    "chunk_index": hit.get('chunk_index', -1)  # Индекс чанка
+                    "id": hit.get('id', 'N/A'),  
+                    "distance": hit.get('distance', 0),  
+                    "text": hit.get('text', "Нет текста"),  
+                    "file_name": hit.get('file_name', 'N/A'),  
+                    "file_path": hit.get('file_path', 'N/A'),  
+                    "chunk_index": hit.get('chunk_index', -1)  
                 })
             formatted_results.append(hits)
         
